@@ -20,7 +20,7 @@ export class CreationOperatorsComponent implements OnInit {
   }
 
   ngAfterViewInit() {
-    this.testFromEvent();
+    // this.testFromEvent();
   }
 
   testOf() {
