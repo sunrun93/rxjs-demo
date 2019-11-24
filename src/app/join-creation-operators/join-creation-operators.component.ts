@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { combineLatest, from, timer, of, empty, throwError, concat, merge, zip } from 'rxjs';
+import { combineLatest, from, timer, of, empty, throwError, concat, merge, zip, race, forkJoin } from 'rxjs';
 import { map, take } from 'rxjs/operators';
 
 @Component({
@@ -14,8 +14,10 @@ export class JoinCreationOperatorsComponent implements OnInit {
   ngOnInit() {
     // this.testConcat();
     // this.testMerge();
-    this.testZip();
+    // this.testZip();
     // this.testCombainLatest();
+    // this.testRace();
+    this.testForkjoin();
   }
 
   testConcat(){
@@ -115,8 +117,67 @@ export class JoinCreationOperatorsComponent implements OnInit {
   }
 
   testCombainLatest(){
-    
+    let sourceA = timer(0, 1000).pipe(map(x => x + 'A'), take(3));
+    let sourceB = timer(500, 1000).pipe(map(x => x + 'B'), take(3));
+    combineLatest(sourceA, sourceB).subscribe(
+      v => console.log(v),
+      err => console.log(err),
+      () => console.log('complete')
+    )
+
+      // Result:
+      // ["0A", "0B"]
+      // ["1A", "0B"]
+      // ["1A", "1B"]
+      // ["2A", "1B"]
+      // ["2A", "2B"]
+      // complete
+
+      let source1 = from([1, 2, 3]);
+      let source2 = from(['a', 'b', 'c']);
+      combineLatest(source1, source2).subscribe(
+        v => console.log(v),
+        err => console.log(err),
+        () => console.log('complete')
+      )
+
+      // Result:
+      // [3, "a"]
+      // [3, "b"]
+      // [3, "c"]
+      // complete
   }
+
+  testRace(){
+    let sourceA = timer(0, 1000).pipe(map(x => x + 'A'), take(3));
+    let sourceB = timer(500, 1000).pipe(map(x => x + 'B'), take(3));
+    race(sourceA, sourceB).subscribe(
+      v => console.log(v),
+      err => console.log(err),
+      () => console.log('complete')
+    )
+    // Result:
+    // 0A
+    // 1A
+    // 2A
+    // complete
+  }
+
+  testForkjoin(){
+    let sourceA = timer(0, 1000).pipe(map(x => x + 'A'), take(3));
+    let sourceB = timer(500, 1000).pipe(map(x => x + 'B'), take(3));
+    let sourceC = timer(1000, 1000).pipe(map(x => x + 'C'), take(3));
+    forkJoin(sourceA, sourceB,sourceC).subscribe(
+      v => console.log(v),
+      err => console.log(err),
+      () => console.log('complete')
+    )
+    // Result:
+    // ["2A", "2B", "2C"]
+    // complete
+  }
+
+ 
 
   
 }

@@ -97,7 +97,7 @@ zip与concat、merge有一个明显的不同，它会将上游Observable的数�
         // [3, 'c']
         // complete
     当source1数据流完结时，source2的数据流并没有结束，但zip在输出三组值后也调用了complete方法。因为zip一对一输出的特性，zip组成的数据流的数据个数由输入的数据流中数据个数最少的流决定。当一个数据流输出n个值完结，另一个数据流找到对应的匹配的第n个数据后，zip就会通知下游Observable完结，因此zip丢掉了source2中第四个数据‘d’。
-    弹珠图：![merge Operators](../../assets/imgs/zip1.jpg)
+    弹珠图：![zip Operators](../../assets/imgs/zip1.jpg)
 
 2. 先后创建两个异步数据流，并用zip进行合并：
 
@@ -113,9 +113,76 @@ zip与concat、merge有一个明显的不同，它会将上游Observable的数�
         // ["1A", "1B"]
         // ["2A", "2B"]
         // complete
-    弹珠图：![merge Operators](../../assets/imgs/zip2.jpg)
-
+    弹珠图：![zip Operators](../../assets/imgs/zip2.jpg)
 
 ## combineLatest
+combineLatest合并数据流，不管是输入的哪一个Observable产生数据时，永远从所有的输入Observable对象中拿最新的数据组成数组，传给下游的Observable对象。
+与zip的一一对应不同，如果某一输入没有新的数据产生，combineLatest会重复使用该输入最后产生的数据，随时组合最新的数据传递给下游，这就是combineLatest的含义。
+1. combineLatest组合先后创建的两个异步数据流：
+        let sourceA = timer(0, 1000).pipe(map(x => x + 'A'), take(3));
+        let sourceB = timer(500, 1000).pipe(map(x => x + 'B'), take(3));
+        combineLatest(sourceA, sourceB).subscribe(
+        v => console.log(v),
+        err => console.log(err),
+        () => console.log('complete')
+        )
+
+        // Result:
+        // ["0A", "0B"]
+        // ["1A", "0B"]
+        // ["1A", "1B"]
+        // ["2A", "1B"]
+        // ["2A", "2B"]
+        // complete
+    
+弹珠图：![combineLatest Operators](../../assets/imgs/combine.jpg)
+如上，当sourceA发出第一个数据'0A'时，因sourceB并没有数据，此时并没有数据传递给下游，只有当所有的上游都有数据，才会将最新的数据传递给下游。
+
+2. combineLatest组合两个同步数据流：
+
+        let source1 = from([1, 2, 3]);
+        let source2 = from(['a', 'b', 'c']);
+        combineLatest(source1, source2).subscribe(
+        v => console.log(v),
+        err => console.log(err),
+        () => console.log('complete')
+        )
+
+        // Result:
+        // [3, "a"]
+        // [3, "b"]
+        // [3, "c"]
+        // complete
+    通过上述代码，我们可以发现，source1中只有3传递到了下游数据流中。与merge类似，在订阅同步数据流时，source2尚未订阅，source1的数据已经全部输出，因此在source2的第一个元素输出开始，source1中最新的数据已经是3。
 ## race
+race作为单词表示为竞争，赛跑等意思，在Rxjs中，也是表示竞争。当多个Observable对象作为输入，谁先产生数据，则将谁传递到下游的Observable对象中，其余的输入则都可以看作陪跑，会被退订且忽略。
+
+        let sourceA = timer(0, 1000).pipe(map(x => x + 'A'), take(3));
+        let sourceB = timer(500, 1000).pipe(map(x => x + 'B'), take(3));
+        race(sourceA, sourceB).subscribe(
+            v => console.log(v),
+            err => console.log(err),
+            () => console.log('complete')
+        )
+        // Result:
+        // 0A
+        // 1A
+        // 2A
+        // complete
+弹珠图：![race Operators](../../assets/imgs/race.jpg)
+
 ## forkjoin
+forkjoin同样接受多个Observable作为输入，与上述几个操作符都不同，forkjoin最终只产生一个数据，只有所有的输入都完成，不再有新数据产生时，forkjoin才会将所有输入Observable对象的最后一个数据组合到一个数组中，发给最终的Observable。
+
+        let sourceA = timer(0, 1000).pipe(map(x => x + 'A'), take(3));
+        let sourceB = timer(500, 1000).pipe(map(x => x + 'B'), take(3));
+        let sourceC = timer(1000, 1000).pipe(map(x => x + 'C'), take(3));
+        forkJoin(sourceA, sourceB,sourceC).subscribe(
+            v => console.log(v),
+            err => console.log(err),
+            () => console.log('complete')
+        )
+        // Result:
+        // ["2A", "2B", "2C"]
+        // complete
+弹珠图：![forkjoin Operators](../../assets/imgs/forkjoin.jpg)
