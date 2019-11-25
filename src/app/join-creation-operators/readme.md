@@ -1,6 +1,7 @@
 # Join Creation Operators 合并类操作符
 之前已经了解过Rxjs中的创建类操作符，包括of,range,interval,timer等等，每个创建类操作符都能创建一个Observable对象，我们可以通过分别对每个Observable对象的订阅，得到我们需要的数据流。       
 同时，Rxjs提供了提供了一些非常实用的的合并类操作符，通过这些操作符，可以对将个Observale对象的数据进行合并，组成一个新的Observable对象，达到对多个数据源同时订阅的目的。
+![join operators](../../assets/imgs/joinoperator.jpg)
 
 ## concat
 在js中，可以通过concat连接两个数组；同样，在rxjs中，我们可以通过concat运算符将两个或多个Observable对象的数据流首尾相连。
