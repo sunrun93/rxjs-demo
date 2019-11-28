@@ -17,7 +17,7 @@ export class JoinCreationOperatorsComponent implements OnInit {
     // this.testZip();
     // this.testCombainLatest();
     // this.testRace();
-    this.testForkjoin();
+    // this.testForkjoin();
   }
 
   testConcat(){
